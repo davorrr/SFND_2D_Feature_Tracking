@@ -75,12 +75,15 @@ Implement detectors HARRIS, FAST, BRISK, ORB, AKAZE, and SIFT and make them sele
 In Keypoint Detection part Shi-Tomasi, Harris, FAST, BRISK, ORB, AKAZE and SIFT based keypoint detection was implemented.
 
 Shi-Tomasi was implemented in:
+
 `void detKeypointsShiTomasi(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool bVis=false);`,
 
 Harris:
+
 `void detKeypointsHarris(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool bVis=false);`
 
 while binary detectors FAST, BRISK, ORB, AKAZE and SIFT were implemented in: 
+
 `void detKeypointsModern(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, std::string detectorType, bool bVis=false);`
 
 Detector is selectable by setting a string in *MidTermProject_Camera_Student.cpp*, line 85.
@@ -107,7 +110,7 @@ For keypoint description BRIEF, ORB, FREAK, AKAZE and SIFT descriptors have been
 
 `void descKeypoints(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, cv::Mat &descriptors, std::string descriptorType);`
 
-Individual descriptors can be chosen by setting the a string in *MidTermProject_Camera_Student.cpp*, line 153.
+Individual descriptors can be chosen by setting the a string in *MidTermProject_Camera_Student.cpp*, line 156.
 
 ### MP.5 Descriptors Matching and MP.6 Descriptors Distance Ratio
 Implement FLANN matching as well as k-nearest neighbor selection. Both methods must be selectable using the respective strings in the main function.
@@ -117,8 +120,8 @@ Besides Brute Force matching, both FLANN and k-nearest neighboor selection for d
 Both FLANN and KNN were implemented as by first instatiating the matcher depending of the string value and later running it. 
 
  
-  else if (matcherType.compare("MAT_FLANN") == 0)
-  {
+      else if (matcherType.compare("MAT_FLANN") == 0)
+      {
 
         if (descSource.type() != CV_32F)
         { // OpenCV bug workaround : convert binary descriptors to floating point due to a bug in current OpenCV implementation
@@ -127,11 +130,11 @@ Both FLANN and KNN were implemented as by first instatiating the matcher dependi
         }
 
         matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
-  }
+      }
 
 
-  else if (selectorType.compare("SEL_KNN") == 0)
-  { 
+      else if (selectorType.compare("SEL_KNN") == 0)
+      { 
         vector<vector<cv::DMatch>> knn_matches;
 
         double t = (double)cv::getTickCount();
@@ -150,8 +153,7 @@ Both FLANN and KNN were implemented as by first instatiating the matcher dependi
 
         }
         cout << "# matches after applying descriptor distance ratio of 0.8 = " << matches.size() << endl;
-
-  }
+      }
 
 As it can be seen in the code within the K-Nearest-Neighbour section the descriptor distance test was implemented as well with the goal to improve the matches quality by removing the pairs of keypoints that fall below the 0.8 ratio of best vs. second-best match.
 
