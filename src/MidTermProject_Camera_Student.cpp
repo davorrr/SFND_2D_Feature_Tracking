@@ -42,6 +42,10 @@ int main(int argc, const char *argv[])
 
     /* MAIN LOOP OVER ALL IMAGES */
 
+    double det_t = 0;
+    double des_t = 0;
+    double knn_t = 0;
+
     for (size_t imgIndex = 0; imgIndex <= imgEndIndex - imgStartIndex; imgIndex++)
     {
         /* LOAD IMAGE INTO BUFFER */
@@ -62,7 +66,14 @@ int main(int argc, const char *argv[])
         // push image into data frame buffer
         DataFrame frame;
         frame.cameraImg = imgGray;
-        dataBuffer.push_back(frame);
+   
+        if (dataBuffer.size() == dataBufferSize)
+        {
+            dataBuffer.erase(dataBuffer.begin());
+            dataBuffer.push_back(frame);
+        }
+        else
+            dataBuffer.push_back(frame);
 
         //// EOF STUDENT ASSIGNMENT
         cout << "#1 : LOAD IMAGE INTO BUFFER done" << endl;
@@ -71,20 +82,24 @@ int main(int argc, const char *argv[])
 
         // extract 2D keypoints from current image
         vector<cv::KeyPoint> keypoints; // create empty feature list for current image
-        string detectorType = "SHITOMASI";
+        string detectorType = "ORB";
 
         //// STUDENT ASSIGNMENT
         //// TASK MP.2 -> add the following keypoint detectors in file matching2D.cpp and enable string-based selection based on detectorType
         //// -> HARRIS, FAST, BRISK, ORB, AKAZE, SIFT
 
+
         if (detectorType.compare("SHITOMASI") == 0)
         {
             detKeypointsShiTomasi(keypoints, imgGray, false);
         }
-        else
-        {
-            //...
+        else if (detectorType.compare("HARRIS") == 0)
+        {          
+            detKeypointsHarris(keypoints, imgGray, false);       
         }
+        else
+            detKeypointsModern(keypoints, imgGray, detectorType, false);
+
         //// EOF STUDENT ASSIGNMENT
 
         //// STUDENT ASSIGNMENT
@@ -95,10 +110,23 @@ int main(int argc, const char *argv[])
         cv::Rect vehicleRect(535, 180, 180, 150);
         if (bFocusOnVehicle)
         {
-            // ...
+            keypoints.erase(std::remove_if(keypoints.begin(), keypoints.end(), 
+            [vehicleRect](cv::KeyPoint kp){return !(vehicleRect.contains(kp.pt));}), keypoints.end());
+        }
+        bool keypoint_vis = false;
+        if(keypoint_vis)
+        {
+            cv::Mat visImage = imgGray.clone();
+            cv::drawKeypoints(imgGray, keypoints, visImage, cv::Scalar::all(-1), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+            string windowName = "Shi-Tomasi Corner Detector Results";
+            cv::namedWindow(windowName, 6);
+            imshow(windowName, visImage);
+            cv::waitKey(0);
         }
 
         //// EOF STUDENT ASSIGNMENT
+        cout << detectorType << " detected " << keypoints.size() << " keypoints on the preceding vehicle." << endl;
+
 
         // optional : limit number of keypoints (helpful for debugging and learning)
         bool bLimitKpts = false;
@@ -125,7 +153,7 @@ int main(int argc, const char *argv[])
         //// -> BRIEF, ORB, FREAK, AKAZE, SIFT
 
         cv::Mat descriptors;
-        string descriptorType = "BRISK"; // BRIEF, ORB, FREAK, AKAZE, SIFT
+        string descriptorType = "ORB"; // BRIEF, ORB, FREAK, AKAZE, SIFT
         descKeypoints((dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->cameraImg, descriptors, descriptorType);
         //// EOF STUDENT ASSIGNMENT
 
@@ -141,8 +169,8 @@ int main(int argc, const char *argv[])
 
             vector<cv::DMatch> matches;
             string matcherType = "MAT_BF";        // MAT_BF, MAT_FLANN
-            string descriptorType = "DES_BINARY"; // DES_BINARY, DES_HOG
-            string selectorType = "SEL_NN";       // SEL_NN, SEL_KNN
+            string descriptorType = "DES_HOG"; // DES_BINARY, DES_HOG
+            string selectorType = "SEL_KNN";       // SEL_NN, SEL_KNN
 
             //// STUDENT ASSIGNMENT
             //// TASK MP.5 -> add FLANN matching in file matching2D.cpp
@@ -180,6 +208,10 @@ int main(int argc, const char *argv[])
         }
 
     } // eof loop over all images
+
+    // cout << "Average detection time over 10 images " << 1000 * det_t / 1.0 << " ms" << endl;
+    // cout << "Average description time over 10 images " << 1000 * des_t / 1.0 << " ms" << endl;
+    // cout << "Average knn time over 10 images " << 1000 * knn_t / 1.0 << " ms" << endl;
 
     return 0;
 }
